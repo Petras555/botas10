@@ -1,0 +1,62 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Hide the right-side Filter sidebar */
+    #changelist-filter { display: none !important; }
+    .changelist-content { margin-right: 0 !important; }
+
+    /* Hide the Actions dropdown (Delete, etc.) */
+    .actions { display: none !important; }
+
+    /* Custom Button Style */
+    .btn-bot-launch {
+        background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%) !important;
+        color: #fff !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        padding: 15px 30px;
+        border-radius: 0.375rem;
+        text-decoration: none !important;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, .11);
+    }
+</style>
+{% endblock %}
+
+{% block object-tools %}
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'run_bot_trigger' %}" class="btn-bot-launch">
+            <i class="ni ni-spaceship mr-2"></i> Launch Python Bot
+        </a>
+
+        <a href="{% url 'stop_bot_script' %}" class="btn-bot-launch">
+            <i class="ni ni-button-pause mr-2"></i> Stop Bot
+        </a>
+
+        <a href="{% url 'run_scrape' %}" class="btn-bot-launch">
+            <i class="ni ni-button-pause mr-2"></i> Scrape Data
+        </a>
+    </div>
+    
+{% endblock %}
+
+
+
+{% block search %}{% endblock %}
+
+{% block result_list %}
+    <div class="card shadow p-4">
+        <h2 class="mb-4">Bot Control Center</h2>
+        <p class="text-muted">Click the button above to trigger the automation script. Results will be saved to the database but are hidden from this simplified view.</p>
+        
+        <hr>
+        
+        <h4>System Status: <span class="badge badge-success">Ready</span></h4>
+    </div>
+{% endblock %}
+
+{% block pagination %}{% endblock %}
