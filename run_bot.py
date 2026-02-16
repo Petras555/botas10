@@ -1,26 +1,24 @@
-import random
-import time
-import os
-from playwright.sync_api import sync_playwright, Playwright
-import json
+from scraper import scrape_general, scrape_last_raid  
+from backoffice.models import Fermos
+from utilities import random_delay, config
+import re
 
 browser = None
 
-with open("config.json") as f:
-    config = json.load(f)
 
-def random_delay(min_ms=500, max_ms=1500):
-    time.sleep(random.uniform(min_ms, max_ms) / 1000)
+def percentage_from_string(resource_cap):
+    clean_resource_cap = re.sub(r'[^\d/]', '', resource_cap)
+    try:
+        value_str, limit_str = clean_resource_cap.split("/")
+        value = int(value_str.strip())
+        limit = int(limit_str.strip())
 
-def load_farms(filename="farms.txt"):
-    farms = []
-    with open(filename, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            farms.append(line)
-    return farms
+        if limit == 0:
+            return 0
+
+        return round((value / limit) * 100, 2)
+    except Exception as e:
+        raise ValueError(f"Invalid format: {resource_cap}") from e
 
 def close_overlays(page):
     """Close any popups or overlays that block clicks"""
@@ -31,15 +29,33 @@ def close_overlays(page):
     except:
         pass  # no overlay found
 
-def farm_from_url(page, url):
+def farm_from_url(page, url, config):
     print(f"Farming: {url}")
+    farm_status = Fermos.objects.filter(url=url).values_list('farm_status', flat=True).first()
+    if farm_status is False:
+        print(f"Skipping farm {url} (farm status is False)")
+        return
     page.goto(url)
     random_delay()
+    scrape_general(page, url)
 
-    # CLOSE ANY OVERLAYS
     close_overlays(page)
+    scrape_last_raid(page, url)
+    random_delay()
 
-    # Wait for the village element and click it (force=True bypasses blockers)
+    resource_cap = Fermos.objects.filter(url=url).values_list('resource_cap', flat=True).first()
+
+    if resource_cap:
+        try:
+            percentage = percentage_from_string(resource_cap)
+            print(f"URL: {url} - Resource Cap: {resource_cap} - Percentage: {percentage}%")
+        except ValueError as e:
+            print(f"Error processing URL {url}: {e}")
+    else:
+        print(f"URL: {url} - No resource cap found")
+
+    page.goto(url)
+
     try:
         village = page.locator("#mapContainer > div > div:nth-child(2)").first
         village.wait_for(state="visible", timeout=5000)
@@ -52,9 +68,21 @@ def farm_from_url(page, url):
     try:
         page.get_by_role("link", name="Send troops", exact=True).click()
         random_delay()
+        
+        if percentage > 90:
+            print("Sending 50% more troops due to high resource cap percentage")            
+            # reik padirbet, reikia profilyje tureti multiplyeri troopsu siuntimui!!!!!!!!!!!
 
-        page.locator(f'input[name="troop[{config["TROOP_ID"]}]"]').fill(str(config["TROOP_AMOUNT"]))
-        random_delay()
+            # padauginimas, neleidzia INT irasyti browseryje
+            amount = str(config["TROOP_AMOUNT"] * 1.5)
+
+            page.locator(f'input[name="troop[{config["TROOP_ID"]}]"]').fill(amount)
+            random_delay()
+        else:
+            print("Sending normal amount of troops")   
+            page.locator(f'input[name="troop[{config["TROOP_ID"]}]"]').fill(str(config["TROOP_AMOUNT"]))
+            random_delay()
+
 
         page.get_by_role("button", name="Send").click()
         random_delay()
@@ -66,50 +94,4 @@ def farm_from_url(page, url):
     except Exception as e:
         print(f"Failed to send troops on {url} | {e}")
 
-def login(page):
-    page.goto("https://www.travian.com/international")
-    page.get_by_role("button", name="Login").click()
 
-    random_delay()
-    page.get_by_role("textbox", name="Enter your email address or").fill(config["EMAIL"])
-    random_delay()
-    page.get_by_role("textbox", name="Enter your password:").fill(config["PASSWORD"])
-    random_delay()
-
-    page.locator("#loginLobby").get_by_role("button", name="Login").click()
-    random_delay(2000, 3000)
-
-    page.get_by_role("button", name="Play now").click()
-    random_delay(3000, 5000)
-
-def kill_browser():
-    global browser
-    browser.close()
-    print("Playwright browser closed via stop button.")
-
-
-def start_the_loop():
-    global browser
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=False, slow_mo=300)
-        context = browser.new_context()
-        page = context.new_page()
-
-        login(page)
-        farm_urls = load_farms("farms.txt")
-
-        while True:  # <--- YOUR LOOP
-            random.shuffle(farm_urls)
-            for url in farm_urls:
-                try:
-                    farm_from_url(page, url)
-                    time.sleep(random.randint(3, 6))
-                except Exception as e:
-                    print(f"Error: {e}")
-                finally:
-                    browser_instance = None
-
-            sleep_minutes = random.randint(20, 25)
-            print(f"Cycle finished. Sleeping {sleep_minutes} minutes...")
-            time.sleep(sleep_minutes * 60)
- 

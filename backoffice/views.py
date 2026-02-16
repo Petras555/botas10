@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 import subprocess
 from django.contrib import messages
 import playwright
-import run_bot, scraper
+import launcher
 import threading
 
 BOT_THREAD = None
@@ -15,7 +15,7 @@ def trigger_bot_script(request):
         messages.warning(request, "Bot is already running in the background!")
     else:
         # Start the loop in the background
-        BOT_THREAD = threading.Thread(target=run_bot.start_the_loop, daemon=True)
+        BOT_THREAD = threading.Thread(target=launcher.start_the_loop, daemon=True)
         BOT_THREAD.start()
         messages.success(request, "Bot started! It will now loop indefinitely in the background.")
 
@@ -27,18 +27,18 @@ def aparatai_view(request):
 
 
 
-def dashboard(request):
-    # This is where you can calculate stats for your 5,000 items
-    # For now, we just pass empty context
-    context = {
-        'segment': 'dashboard',
-    }
-    return render(request, 'pages/dashboard.html', context)
+# def dashboard(request):
+#     # This is where you can calculate stats for your 5,000 items
+#     # For now, we just pass empty context
+#     context = {
+#         'segment': 'dashboard',
+#     }
+#     return render(request, 'pages/dashboard.html', context)
 
 @user_passes_test(lambda u: u.is_superuser)
 def trigger_bot_script(request):
     try:
-        result = run_bot.start_the_loop()
+        result = launcher.start_the_loop()
         
         messages.success(request, f"Success: {result}")
     except Exception as e:
@@ -49,7 +49,7 @@ def trigger_bot_script(request):
 def stop_bot_script(request):
     try:
         # 1. Attempt the built-in Playwright close
-        run_bot.kill_browser()
+        launcher.kill_browser()
     except Exception as e:
         # We ignore 'greenlet' or 'thread' errors because 
         # as you said, the browser is already closing!
@@ -61,12 +61,12 @@ def stop_bot_script(request):
     # 3. MUST use 'return' here to actually move the browser
     return redirect('admin:backoffice_botlog_changelist')
 
-def run_scrape(request):
-    try:
-        scraper.scrape()
-    except Exception as e:
-        print(f"kazkas negerai: {e}")
+# def run_scrape(request):
+#     try:
+#         scraper.scrape()
+#     except Exception as e:
+#         print(f"kazkas negerai: {e}")
 
-    messages.warning(request, "Scraping completed!")
+#     messages.warning(request, "Scraping completed!")
 
-    return redirect('admin:backoffice_botlog_changelist')
+#     return redirect('admin:backoffice_botlog_changelist')

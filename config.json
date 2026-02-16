@@ -1,8 +1,13 @@
 {
     "EMAIL": "jslionskis@gmail.com",
     "PASSWORD": "Travian3911",
-    "TROOP_ID": "t5",      
+    "TROOP_ID": "t5",
     "TROOP_AMOUNT": 100,
     "MIN_SLEEP_MIN": 20,
-    "MAX_SLEEP_MIN": 25
+    "MAX_SLEEP_MIN": 25,
+    "WAREHOUSE_CAPACITY": 400000,
+    "RESOURCE_TRIGGER": 0.9,
+    "EI_TRAIN_AMOUNT": 50,
+    "STABLE_URL": "https://nys.x5.international.travian.com/build.php?gid=20",
+    "TROOP_NAME": "t5"
 }

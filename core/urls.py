@@ -20,10 +20,9 @@ from backoffice import views # Import your views
 
 urlpatterns = [
     path('aparatai/', views.aparatai_view, name='aparatai'),
-    path('admin/run-scrape/', views.run_scrape, name='run_scrape'),
     path('admin/run-bot/', views.trigger_bot_script, name='run_bot_trigger'),
     path('admin/stop-bot/', views.stop_bot_script, name='stop_bot_script'),
-    path('', views.dashboard, name='home'), # Now the front door is the NICE dashboard
+    # path('', views.dashboard, name='home'), # Now the front door is the NICE dashboard
     path('admin/', admin.site.urls),
 ]
 

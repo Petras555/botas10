@@ -1,17 +1,5 @@
 from django.contrib import admin
-from .models import Person, BotLog, Nustatymai, Grupes, Fermos # Import your new model
-
-@admin.register(Person)
-class PersonAdmin(admin.ModelAdmin):
-    # This shows columns in the list view
-    list_display = ('full_name', 'email', 'company', 'is_active')
-    
-    # THIS IS YOUR SEARCH BUTTON LOGIC
-    # It will search through these specific fields
-    search_fields = ('full_name', 'email', 'company')
-    
-    # This adds a filter sidebar on the right
-    list_filter = ('is_active', 'date_joined')
+from .models import BotLog, Fermos # Import your new model
 
 
 
@@ -21,20 +9,33 @@ class BotLogAdmin(admin.ModelAdmin):
     search_fields = ('action',)
 
 
-@admin.register(Nustatymai)
-class NustatymaiAdmin(admin.ModelAdmin):
-    list_display = ('action', 'status', 'timestamp')
-    list_filter = ('status',)
-    search_fields = ('action',)
-
-@admin.register(Grupes)
-class GrupesAdmin(admin.ModelAdmin):
-    list_display = ('action', 'status', 'timestamp')
-    list_filter = ('status',)
-    search_fields = ('action',)
-
 @admin.register(Fermos)
 class FermosAdmin(admin.ModelAdmin):
-    list_display = ('village_name', 'player_name', 'tribe', 'alliance', 'population')
-    list_filter = ('tribe', 'alliance')
-    search_fields = ('village_name', 'player_name')
+    # This organizes the layout
+    fieldsets = (
+        ('Farm Status', {
+            'fields': ('farm_status', 'farm_status_comment')
+        }),
+        ('General Info', {
+            'fields': ('village_name', 'player_name', 'tribe','alliance', 'population', 'url')
+        }),
+        ('Last Attack Raided Resources', {
+            # Putting these in a single inner tuple forces them onto one line
+            'fields': (('lumber', 'clay', 'iron', 'crop'), 'resource_cap'),
+        }),
+        ('Last Attack – Troops Overview', {
+        'fields': (
+            ('legionnaire', 'lost_legionnaire'),
+            ('praetorian', 'lost_praetorian'),
+            ('imperian', 'lost_imperian'),
+            ('equites_legati', 'lost_equites_legati'),
+            ('equites_imperatoris', 'lost_equites_imperatoris'),
+            ('equites_caesaris', 'lost_equites_caesaris'),
+            ('battering_ram', 'lost_battering_ram'),
+            ('fire_catapult', 'lost_fire_catapult'),
+            ('senator', 'lost_senator'),
+            ('settler', 'lost_settler'),
+            ('hero', 'lost_hero'),
+        )
+}),
+    )
