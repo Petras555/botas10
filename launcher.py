@@ -1,8 +1,10 @@
 from run_bot import farm_from_url
 from sandelys import warehouse_monitor_loop
 from utilities import random_delay, config, load_farms, check_warehouse_capacity
+from flee import avoid_attack, avoid_attack_loop    
 from playwright.sync_api import sync_playwright
 import random, time
+
 
 
 
@@ -49,6 +51,7 @@ def start_the_loop():
                 try:
                     farm_from_url(page, url, config)
                     time.sleep(random.randint(3, 6))
+                    avoid_attack(page)
                 except Exception as e:
                     print(f"Error: {e}")
                 finally:
@@ -56,9 +59,12 @@ def start_the_loop():
 
             warehouse_monitor_loop(page)
 
+        
+
             sleep_minutes = random.randint(20, 25)
             print(f"Cycle finished. Sleeping {sleep_minutes} minutes...")
-            time.sleep(sleep_minutes * 60)
+            avoid_attack_loop(page, sleep_minutes)
+
 
 
 

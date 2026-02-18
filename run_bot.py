@@ -95,3 +95,6 @@ def farm_from_url(page, url, config):
         print(f"Failed to send troops on {url} | {e}")
 
 
+
+
+        
